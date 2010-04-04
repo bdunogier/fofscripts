@@ -1,7 +1,7 @@
 <?php
 /**
  * A frets on fire song
- * 
+ *
  * @doc http://fretsonfire.wikidot.com/song-ini-values
  */
 class FOFSong
@@ -15,33 +15,36 @@ class FOFSong
         $this->songINI = $directory . DIRECTORY_SEPARATOR . "song.ini";
         if ( !file_exists( $this->songINI ) )
             throw new Exception( "Directory '$directory' does not contain a song.ini file" );
-        
+
         $this->parseINIFile();
     }
-    
-    public function __set( $property, $value ) 
+
+    public function __set( $property, $value )
     {
         if ( !in_array( $property, $this->INIProperties ) )
         {
-            throw new Exception( "Unknown FOFSong property '$property'" );
+            if ( $this->debug === true )
+            	throw new Exception( "Unknown FOFSong property '$property'" );
+        	else
+        		return void;
         }
         $this->INIData[$property] = $value;
     }
-    
+
     public function __get( $property )
     {
         if ( !in_array( $property, $this->INIProperties ) )
             throw new Exception( "Unknown FOFSong property '$property'" );
-        
+
         if ( !isset( $this->INIData[$property] ) )
             return false;
         else
             return $this->INIData[$property];
     }
-    
+
     /**
      * Parses a FoF INI file
-     * 
+     *
      * @see $this->songINI
      */
     private function parseINIFile()
@@ -61,7 +64,12 @@ class FOFSong
             }
         }
     }
-    
+
+	public function __toString()
+	{
+		return "$this->artist: $this->name";
+	}
+
     /**
      * This has to be called after values have been changed in order to save them
      */
@@ -76,7 +84,7 @@ class FOFSong
         fclose( $fp );
         return true;
     }
-    
+
     private $songINI = false;
     private $INIData = array();
     private $INIProperties = array(
@@ -116,6 +124,10 @@ class FOFSong
         'cover',
         'background',
         'force_background',
+
+        'hopo', 'diff_vocals', 'scores_bass', 'scores_coop', 'scores_lead'
     );
+
+	public $debug = false;
 }
 ?>
