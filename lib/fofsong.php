@@ -16,7 +16,8 @@ class FOFSong
         if ( !file_exists( $this->songINI ) )
             throw new Exception( "Directory '$directory' does not contain a song.ini file" );
 
-        $this->parseINIFile();
+        $this->directoryPath = $directory;
+       	$this->parseINIFile();
     }
 
     public function __set( $property, $value )
@@ -33,7 +34,15 @@ class FOFSong
 
     public function __get( $property )
     {
-        if ( !in_array( $property, $this->INIProperties ) )
+        if ( $property == 'directory' )
+        {
+        	if ( !isset( $privateData['directory'] ) )
+        	{
+        		$privateData['directory'] = new FOFSongDirectory( $this->directoryPath );
+        	}
+        	return $privateData['directory'];
+        }
+		if ( !in_array( $property, $this->INIProperties ) )
             throw new Exception( "Unknown FOFSong property '$property'" );
 
         if ( !isset( $this->INIData[$property] ) )
@@ -127,6 +136,8 @@ class FOFSong
 
         'hopo', 'diff_vocals', 'scores_bass', 'scores_coop', 'scores_lead'
     );
+	private $privateData;
+	private $directoryPath;
 
 	public $debug = false;
 }
