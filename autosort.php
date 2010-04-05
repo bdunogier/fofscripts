@@ -6,14 +6,6 @@ $baseSongsFolder = "d:\\Games\\Frets on fire\\Songs";
 $songsFolder = "$baseSongsFolder\\Unsorted";
 $byArtistSongsFolder = "$baseSongsFolder\\By artist";
 
-/**
-* Comment lire le dossier de chansons (récursif):
-* 1. Ouvrir le dossier racine
-* 2. Lire le premier sous-élément
-* 3. Si ce dossier contient un ou des sous-dossiers, l'ouvrir également (appel récursif)
-* 4. Si le dossier contient un fichier chanson + un fichier INI, lire le fichier INI
-*    (guitar.ogg + song.ini)
-**/
 class SongsFilterIterator extends FilterIterator
 {
 	public function accept()
@@ -29,6 +21,7 @@ function createJunction( $sourceDirectory, $target )
 	$artist = array_pop( $components );
 	$prefix = implode( DIRECTORY_SEPARATOR, $components );
 	$artistFolder = $prefix . DIRECTORY_SEPARATOR . $artist;
+
 
 	if ( LETTER_SPLIT )
 	{

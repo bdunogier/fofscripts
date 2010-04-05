@@ -34,7 +34,8 @@ class FOFSong
 
     public function __get( $property )
     {
-        if ( $property == 'directory' )
+        // directory: the FOFSongDirectory for this song
+		if ( $property == 'directory' )
         {
         	if ( !isset( $privateData['directory'] ) )
         	{
@@ -42,6 +43,15 @@ class FOFSong
         	}
         	return $privateData['directory'];
         }
+    	// files: a files iterator for the song's files
+    	elseif( $property == 'files' )
+    	{
+    		if ( !isset( $privateData['files'] ) )
+    		{
+    			$privateData['files'] = new DirectoryIterator( $this->directoryPath );
+    		}
+    		return $privateData['files'];
+    	}
 		if ( !in_array( $property, $this->INIProperties ) )
             throw new Exception( "Unknown FOFSong property '$property'" );
 
