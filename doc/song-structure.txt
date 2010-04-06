@@ -1,0 +1,46 @@
+==============
+Song structure
+==============
+
+Files
+=====
+
+Mandatory files
+---------------
+
+* notes.mid
+* song.ogg (might be optional)
+* song.ini
+* guitar.ogg
+
+Optional files
+--------------
+
+* label.png
+* rythm.ogg
+* preview.ogg
+
+notes.mid
+=========
+
+Possible tracks
+---------------
+
+* PART GUITAR - main guitar track
+* PART BASS - bass guitar
+* PART RHYTHM - rhythm guitar
+* PART GUITAR COOP - lead guitar
+* PART DRUM - drums
+
+Midi note / fret match table
+----------------------------
+
+======  ====  ====  ======  ====  ======
+Fret    Note  easy  medium  hard  expert
+======  ====  ====  ======  ====  ======
+Green   C     60    72      84    96
+Red     C#    61    73      85    97
+Yellow  D     62    74      86    98
+Blue    D#    63    75      87    99
+Orange  E     64    76      88    100
+======  ====  ====  ======  ====  ======

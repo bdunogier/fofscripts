@@ -10,12 +10,17 @@ class FOF
 	{
 		$lib = dirname( __FILE__ );
 
-		if ( strtolower( substr( $className, 0, 3 ) ) == 'fof' )
+        if ( strtolower( substr( $className, 0, 3 ) ) == 'fof' )
 		{
 			$fileName = $lib . DIRECTORY_SEPARATOR . strtolower( $className ) .".php";
 			if ( file_exists( $fileName ) )
 				include $fileName;
 		}
+	    if ( $className == 'Midi' )
+	    {
+		    $fileName = $lib . DIRECTORY_SEPARATOR . "midi/midi.class.php";
+	        include $fileName;
+	    }
 	}
 }
 ?>
