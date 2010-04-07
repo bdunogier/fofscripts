@@ -110,66 +110,69 @@ class FOFSong
     
     private function getTracks()
     {
-        $fretIndex = array(
-        60 => 'easy', 61 => 'easy', 62 => 'easy', 63 => 'easy', 64 => 'easy',
-        72 => 'medium', 73 => 'medium', 74 => 'medium', 75 => 'medium', 76 => 'medium',
-        84 => 'hard', 85 => 'hard', 86 => 'hard', 87 => 'hard', 88 => 'hard',
-        96 => 'expert', 97 => 'expert', 98 => 'expert', 99 => 'expert', 100 => 'expert',
-        );
-        $difficulties = array_unique( array_values( $fretIndex ) );
-
-        $midi = new Midi();
-        // $midi->importMid( 'abeautifullie/notes.mid' );
-        // $midi->importMid( 'acdc_thunderstruck/notes.mid' );
-        $midi->importMid( $this->directoryPath . DIRECTORY_SEPARATOR . 'notes.mid' );
-        $xmlString = $midi->getXml();
-        $xml = simplexml_load_string( $xmlString );
-        
-        foreach( $xml->Track as $track )
+        if ( !isset( $privateData['tracks'] ) )
         {
-            $trackName = (string)$track->Event[0]->TrackName;
-            if ( substr( $trackName, 0, 5 ) == 'PART ' )
+            $fretIndex = array(
+                60 => 'easy', 61 => 'easy', 62 => 'easy', 63 => 'easy', 64 => 'easy',
+                72 => 'medium', 73 => 'medium', 74 => 'medium', 75 => 'medium', 76 => 'medium',
+                84 => 'hard', 85 => 'hard', 86 => 'hard', 87 => 'hard', 88 => 'hard',
+                96 => 'expert', 97 => 'expert', 98 => 'expert', 99 => 'expert', 100 => 'expert',
+            );
+            $difficulties = array_unique( array_values( $fretIndex ) );
+
+            $midi = new Midi();
+            // $midi->importMid( 'abeautifullie/notes.mid' );
+            // $midi->importMid( 'acdc_thunderstruck/notes.mid' );
+            $midi->importMid( $this->directoryPath . DIRECTORY_SEPARATOR . 'notes.mid' );
+            $xmlString = $midi->getXml();
+            $xml = simplexml_load_string( $xmlString );
+        
+            foreach( $xml->Track as $track )
             {
-                $trackName = ucfirst( strtolower( substr( $trackName, 5 ) ) );
-                $parts[] = $trackName;
-        
-                // disabled difficulty levels for track
-                $t0 = $track->xpath( 'Event[Absolute=0 and child::NoteOn]' );
-                foreach( $t0 as $event )
+                $trackName = (string)$track->Event[0]->TrackName;
+                if ( substr( $trackName, 0, 5 ) == 'PART ' )
                 {
-                    $note = (int)$event->NoteOn[0]['Note'];
-                    
-                    if ( !isset( $disabled[$trackName] ) )
-                        $disabled[$trackName] = array();
-                    // unknown note, let's skip it for now
-                    if ( !isset( $fretIndex[$note] ) )
-                        break;
-                    $difficulty = $fretIndex[$note];
-                    if ( !isset( $disabled[$trackName][$difficulty] ) )
-                        $disabled[$trackName][$difficulty] = array();
+                    $trackName = ucfirst( strtolower( substr( $trackName, 5 ) ) );
+                    $parts[] = $trackName;
         
-                    $disabled[$trackName][$difficulty][$note] = true;
+                    // disabled difficulty levels for track
+                    $t0 = $track->xpath( 'Event[Absolute=0 and child::NoteOn]' );
+                    foreach( $t0 as $event )
+                    {
+                        $note = (int)$event->NoteOn[0]['Note'];
+                    
+                        if ( !isset( $disabled[$trackName] ) )
+                            $disabled[$trackName] = array();
+                        // unknown note, let's skip it for now
+                        if ( !isset( $fretIndex[$note] ) )
+                            break;
+                        $difficulty = $fretIndex[$note];
+                        if ( !isset( $disabled[$trackName][$difficulty] ) )
+                            $disabled[$trackName][$difficulty] = array();
+        
+                        $disabled[$trackName][$difficulty][$note] = true;
+                    }
+                }
+            }
+            // display available difficulties for each track
+            $tracks = array();
+            foreach( $parts as $track )
+            {
+                $trackDifficulties = array();
+                foreach( $difficulties as $difficulty )
+                {
+                    if ( !isset( $disabled[$track][$difficulty] ) )
+                        $trackDifficulties[] = $difficulty;
+                }
+                if ( count( $trackDifficulties ) > 0 )
+                {
+                    $currentTrack = new FOFSongTrack( $track );
+                    $currentTrack->difficulties = $trackDifficulties;
+                    $tracks[] = $currentTrack;
                 }
             }
         }
-                // display available difficulties for each track
-        $tracks = array();
-        foreach( $parts as $track )
-        {
-            $trackDifficulties = array();
-            foreach( $difficulties as $difficulty )
-            {
-                if ( !isset( $disabled[$track][$difficulty] ) )
-                    $trackDifficulties[] = $difficulty;
-            }
-            if ( count( $trackDifficulties ) > 0 )
-            {
-                $currentTrack = new FOFSongTrack( $track );
-                $currentTrack->difficulties = $trackDifficulties;
-                $tracks[] = $currentTrack;
-            }
-        }
-        return $tracks;
+        return $privateData['tracks'];
     }
 
     private $songINI = false;
