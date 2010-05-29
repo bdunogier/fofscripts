@@ -41,10 +41,38 @@ class FOFSongIterator extends FilterIterator
 		if ( $item->isDir() && file_exists( $songINIPath ) )
 		{
 			$song = new FOFSong( $item->getPathName() );
-			foreach( $this->filters as $key => $value )
+			foreach( $this->filters as $property => $value )
 			{
-				if ( strtolower( $song->$key ) != strtolower( $value ) )
-					return false;
+				// @todo Refactor to a filter abstract class + classes
+				if ( !is_array( $value) )
+				{
+					if ( strtolower( $song->$property ) != strtolower( $value ) )
+						return false;
+				}
+				// complex filter, array[0] = operator, array[1] = value
+				// FOFSongIteratorFilter
+				// => FOFSongIteratorArithmeticComparison( $operator )
+				//    Check for numeric property
+				// Call filter callback
+				else
+				{
+					$operator = $value[0];
+					$value = $value[1];
+					switch( $operator )
+					{
+						case '<':
+							return (int)$song->$property < (int)$value;
+
+						case '<=':
+							return (int)$song->$property <= (int)$value;
+
+						case '>':
+							return (int)$song->$property > (int)$value;
+
+						case '>=':
+							return (int)$song->$property >= (int)$value;
+					}
+				}
 			}
 			return true;
 		}

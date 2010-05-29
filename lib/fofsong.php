@@ -1,8 +1,54 @@
 <?php
 /**
+ * This file contains the FOFSong class.
+ */
+
+/**
  * A frets on fire song
  *
  * @doc http://fretsonfire.wikidot.com/song-ini-values
+ *
+ * @property $artist
+ * @property string album
+ * @property string genre
+ * @property string eighthnote_hopo
+ * @property string version
+ * @property string year
+ * @property string lyrics
+ * @property string icon
+ * @property string name
+ * @property string tags
+ * @property string diff_guitar
+ * @property string diff_drums
+ * @property string diff_bass
+ * @property string diff_band
+ * @property string unlock_id
+ * @property string unlock_require
+ * @property string unlock_text
+ * @property string cassettecolor
+ * @property string count
+ * @property string scores
+ * @property string scores_ext
+ * @property string tutorial
+ * @property string delay
+ * @property string frets
+ * @property string version
+ * @property string year
+ * @property string genre
+ * @property string loading_phrase
+ * @property string hopofreq
+ * @property string video
+ * @property string video_start_time
+ * @property string video_end_time
+ * @property string preview_start_time
+ * @property string cover
+ * @property string background
+ * @property string force_background
+ * @property string hopo
+ * @property string diff_vocals
+ * @property string scores_bass
+ * @property string scores_coop
+ * @property string scores_lead
  */
 class FOFSong
 {
@@ -16,7 +62,9 @@ class FOFSong
         if ( !file_exists( $this->songINI ) )
             throw new Exception( "Directory '$directory' does not contain a song.ini file" );
 
-        $this->directoryPath = $directory;
+        $this->strMethod = self::STR_METHOD_SIMPLE;
+
+		$this->directoryPath = $directory;
        	$this->parseINIFile();
     }
 
@@ -29,7 +77,14 @@ class FOFSong
         	else
         		return void;
         }
-        $this->INIData[$property] = $value;
+        switch( $property )
+        {
+        	case 'scores':
+        	// case 'scores_ext':
+        		$value = new FOFSongScores( $value );
+        		break;
+        }
+		$this->INIData[$property] = $value;
     }
 
     public function __get( $property )
@@ -93,7 +148,7 @@ class FOFSong
 		return "$this->artist: $this->name";
 	}
 
-    /**
+	/**
      * This has to be called after values have been changed in order to save them
      */
     public function save()
@@ -107,7 +162,7 @@ class FOFSong
         fclose( $fp );
         return true;
     }
-    
+
     private function getTracks()
     {
         if ( !isset( $privateData['tracks'] ) )
@@ -126,7 +181,7 @@ class FOFSong
             $midi->importMid( $this->directoryPath . DIRECTORY_SEPARATOR . 'notes.mid' );
             $xmlString = $midi->getXml();
             $xml = simplexml_load_string( $xmlString );
-        
+
             foreach( $xml->Track as $track )
             {
                 $trackName = (string)$track->Event[0]->TrackName;
@@ -134,13 +189,13 @@ class FOFSong
                 {
                     $trackName = ucfirst( strtolower( substr( $trackName, 5 ) ) );
                     $parts[] = $trackName;
-        
+
                     // disabled difficulty levels for track
                     $t0 = $track->xpath( 'Event[Absolute=0 and child::NoteOn]' );
                     foreach( $t0 as $event )
                     {
                         $note = (int)$event->NoteOn[0]['Note'];
-                    
+
                         if ( !isset( $disabled[$trackName] ) )
                             $disabled[$trackName] = array();
                         // unknown note, let's skip it for now
@@ -149,7 +204,7 @@ class FOFSong
                         $difficulty = $fretIndex[$note];
                         if ( !isset( $disabled[$trackName][$difficulty] ) )
                             $disabled[$trackName][$difficulty] = array();
-        
+
                         $disabled[$trackName][$difficulty][$note] = true;
                     }
                 }
@@ -174,6 +229,16 @@ class FOFSong
         }
         return $privateData['tracks'];
     }
+
+	/**
+	 * Sets the __toString behaviour
+	 */
+	public function setStrMethod( $strMethod )
+	{
+		if ( !in_array( $strMethod, array( self::STR_METHOD_SIMPLE, self::STR_METHOD_ADVANCED ) ) )
+			throw new Exception( "Unknown STR_METHOD: $strMethod" );
+		$this->strMethod = $strMethod;
+	}
 
     private $songINI = false;
     private $INIData = array();
@@ -221,5 +286,15 @@ class FOFSong
 	private $directoryPath;
 
 	public $debug = false;
+
+	private $strMethod;
+
+	/**
+	* Used by self::uncerealize
+	*/
+	private $currentPos = null;
+
+	const STR_METHOD_SIMPLE = 0;
+	const STR_METHOD_ADVANCED = 1;
 }
 ?>

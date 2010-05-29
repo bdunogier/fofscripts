@@ -8,6 +8,9 @@ class FOF
 {
 	public static function autoload( $className )
 	{
+		if ( $className == 'pyUncerealizer' )
+			include 'pyuncerealizer.php';
+
 		$lib = dirname( __FILE__ );
 
         if ( strtolower( substr( $className, 0, 3 ) ) == 'fof' )
