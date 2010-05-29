@@ -10,16 +10,53 @@
  */
 class FOFSongScores
 {
-    public function __construct( $scoresString )
+    /**
+     * Constructor
+     *
+     * @param string $scoresString
+     * @param string $extScoresString
+     */
+	public function __construct( $scoresString, $extScoresString )
     {
     	$scoresArray = pyUncerealizer::parse( $scoresString );
+    	$extScoresArray = pyUncerealizer::parse( $extScoresString );
 
-		foreach( $scoresArray as $scoreDifficultiesArray )
+		$mergedScoresArray = self::mergeScoresArrays( $scoresArray, $extScoresArray );
+		foreach( $mergedScoresArray as $scoreDifficultiesArray )
 		{
 			$difficulty = new FOFSongScoresDifficulty( $scoreDifficultiesArray );
 			$this->difficulties[$difficulty->difficulty] = $difficulty;
 		}
     }
+
+	/**
+	 * Merges the scores and scores_ext array in one
+	 *
+	 * @param array $scoresArray
+	 * @param array $extScoresArray
+	 * @return array
+	 */
+	public function mergeScoresArrays( $scoresArray, $extScoresArray )
+	{
+		// difficulty layer
+		if ( count( $scoresArray ) != count( $extScoresArray ) )
+			throw new Exception( "Invalid score array" );
+
+		foreach( $scoresArray as $difficulty => $subArray )
+		{
+			$difficultySubentry = $subArray[0];
+			$subScoresArray = $subArray[1];
+			foreach( $subScoresArray as $scoreKey => $scoreEntry )
+			{
+				// we skip the first item, same hash
+				foreach( array_slice( $extScoresArray[$difficulty][1][$scoreKey], 1 ) as $entry )
+				{
+					$scoresArray[$difficulty][1][$scoreKey][] = $entry;
+				}
+			}
+		}
+		return $scoresArray;
+	}
 
 	public function __get( $property )
 	{
@@ -120,15 +157,37 @@ class FOFSongScoreEntry
 {
 	public function __construct( $entryArray )
 	{
-		$this->score = $entryArray[0];
-		$this->stars = $entryArray[1];
-		$this->player = $entryArray[2];
-		$this->hash = $entryArray[3];
+		$this->score = $entryArray[self::IDX_SCORE];
+		$this->stars = $entryArray[self::IDX_STARS];
+		$this->player = $entryArray[self::IDX_PLAYER];
+		$this->hash = $entryArray[self::IDX_HASH];
+
+		$this->notesOk = (int)$entryArray[self::IDX_NOTES_OK];
+		$this->notesTotal = (int)$entryArray[self::IDX_NOTES_TOTAL];
+		$this->perfect = ( $entryArray[self::IDX_STARS_EXT] == 6 );
+		$this->streak = ( $entryArray[self::IDX_STREAK] == 6 );
+
+		$this->percentage = round( ( $this->notesOk / $this->notesTotal ) * 100, 2 );
 	}
 
 	public $stars;
 	public $score;
 	public $player;
 	public $hash;
+	public $notesOk;
+	public $notesTotal;
+	public $streak;
+	public $perfect;
+	public $percentage;
+
+	const IDX_SCORE = 0;
+	const IDX_STARS = 1;
+	const IDX_PLAYER = 2;
+	const IDX_HASH = 3;
+	const IDX_STARS_EXT = 4;
+	const IDX_NOTES_OK = 5;
+	const IDX_NOTES_TOTAL = 6;
+	const IDX_STREAK = 7;
+	const IDX_ORIGIN = 8;
 }
 ?>

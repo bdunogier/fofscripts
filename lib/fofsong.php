@@ -73,16 +73,9 @@ class FOFSong
         if ( !in_array( $property, $this->INIProperties ) )
         {
             if ( $this->debug === true )
-            	throw new Exception( "Unknown FOFSong property '$property'" );
+            	throw new ezcBasePropertyNotFoundException( $property );
         	else
         		return void;
-        }
-        switch( $property )
-        {
-        	case 'scores':
-        	// case 'scores_ext':
-        		$value = new FOFSongScores( $value );
-        		break;
         }
 		$this->INIData[$property] = $value;
     }
@@ -90,34 +83,32 @@ class FOFSong
     public function __get( $property )
     {
         // directory: the FOFSongDirectory for this song
-		if ( $property == 'directory' )
-        {
-        	if ( !isset( $privateData['directory'] ) )
-        	{
-        		$privateData['directory'] = new FOFSongDirectory( $this->directoryPath );
-        	}
-        	return $privateData['directory'];
-        }
-    	// files: a files iterator for the song's files
-    	elseif( $property == 'files' )
-    	{
-    		if ( !isset( $privateData['files'] ) )
-    		{
-    			$privateData['files'] = new DirectoryIterator( $this->directoryPath );
-    		}
-    		return $privateData['files'];
-    	}
-        elseif ( $property == 'tracks' )
-        {
-            return $this->getTracks();
-        }
-		if ( !in_array( $property, $this->INIProperties ) )
-            throw new Exception( "Unknown FOFSong property '$property'" );
+		switch ( $property )
+		{
+			case 'directory':
+	        	if ( !isset( $privateData['directory'] ) )
+	        		$privateData['directory'] = new FOFSongDirectory( $this->directoryPath );
+	        	return $privateData['directory'];
+	    	case 'files':
+	    		if ( !isset( $privateData['files'] ) )
+	    			$privateData['files'] = new DirectoryIterator( $this->directoryPath );
+	    		return $privateData['files'];
+	        case 'tracks':
+	            return $this->getTracks();
 
-        if ( !isset( $this->INIData[$property] ) )
-            return false;
-        else
-            return $this->INIData[$property];
+	        case 'scores':
+	        	if ( !isset( $privateData['scores'] ) )
+	        		$privateData['scores'] = new FOFSongScores( $this->INIData['scores'], $this->INIData['scores_ext'] );
+	        	return $privateData['scores'];
+
+			default:
+				if ( !in_array( $property, $this->INIProperties ) )
+		            throw new ezcBasePropertyNotFoundException( $property );
+		        if ( !isset( $this->INIData[$property] ) )
+		            return false;
+		        else
+		            return $this->INIData[$property];
+		}
     }
 
     /**
